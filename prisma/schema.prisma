@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["clientExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model course {
+  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title        String         @db.VarChar(255)
+  description  String
+  team_id      String         @db.Uuid
+  created_at   DateTime       @default(now()) @db.Timestamp(6)
+  updated_at   DateTime       @default(now()) @db.Timestamp(6)
+  team         team           @relation(fields: [team_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  subscription subscription[]
+}
+
+model mentorship {
+  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title        String         @db.VarChar(255)
+  description  String
+  team_id      String         @db.Uuid
+  created_at   DateTime       @default(now()) @db.Timestamp(6)
+  updated_at   DateTime       @default(now()) @db.Timestamp(6)
+  team         team           @relation(fields: [team_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  subscription subscription[]
+}
+
+model subscription {
+  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id       String      @db.Uuid
+  course_id     String?     @db.Uuid
+  mentorship_id String?     @db.Uuid
+  created_at    DateTime    @default(now()) @db.Timestamp(6)
+  updated_at    DateTime    @default(now()) @db.Timestamp(6)
+  course        course?     @relation(fields: [course_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  mentorship    mentorship? @relation(fields: [mentorship_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user          user        @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model team {
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String        @db.VarChar(255)
+  user_id     String        @db.Uuid
+  created_at  DateTime      @default(now()) @db.Timestamp(6)
+  updated_at  DateTime      @default(now()) @db.Timestamp(6)
+  course      course[]
+  mentorship  mentorship[]
+  user        user          @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  team_member team_member[]
+}
+
+model team_member {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  team_id    String   @db.Uuid
+  user_id    String   @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @default(now()) @db.Timestamp(6)
+  team       team     @relation(fields: [team_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user       user     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model user {
+  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email        String         @unique @db.VarChar(255)
+  firstName    String?        @db.VarChar(255)
+  lastName     String?        @db.VarChar(255)
+  roq_user_id  String         @db.VarChar(255)
+  tenant_id    String         @db.VarChar(255)
+  subscription subscription[]
+  team         team[]
+  team_member  team_member[]
+}
